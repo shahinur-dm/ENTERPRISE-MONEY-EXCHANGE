@@ -1,0 +1,28 @@
+{
+  "name": "money-exchange-remittance-erp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Enterprise Money Exchange & International Remittance ERP",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "dev:api": "npm run dev --workspace=apps/api",
+    "dev:web": "npm run dev --workspace=apps/web",
+    "build:api": "npm run build --workspace=apps/api",
+    "build:web": "npm run build --workspace=apps/web"
+  },
+  "keywords": [
+    "remittance",
+    "money-exchange",
+    "erp",
+    "fintech",
+    "double-entry-accounting"
+  ],
+  "author": "Dawat IT & Consultancy",
+  "license": "UNLICENSED"
+}

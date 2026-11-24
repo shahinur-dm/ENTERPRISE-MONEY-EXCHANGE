@@ -5,6 +5,7 @@ export interface PageHeaderProps {
   title: string;
   description?: string;
   actions?: React.ReactNode;
+  action?: React.ReactNode;
   badge?: React.ReactNode;
   className?: string;
 }
@@ -13,9 +14,11 @@ export function PageHeader({
   title,
   description,
   actions,
+  action,
   badge,
   className,
 }: PageHeaderProps) {
+  const effectiveActions = actions || action;
   return (
     <div
       className={cn(
@@ -37,7 +40,7 @@ export function PageHeader({
         )}
       </div>
 
-      {actions && <div className="flex items-center space-x-2.5 shrink-0">{actions}</div>}
+      {effectiveActions && <div className="flex items-center space-x-2.5 shrink-0">{effectiveActions}</div>}
     </div>
   );
 }

@@ -5,6 +5,8 @@ import { ArrowUpRight } from 'lucide-react';
 export interface StatCardProps {
   title: string;
   value: string;
+  subtitle?: string;
+  icon?: any;
   currency?: string;
   changePercent?: number;
   changeLabel?: string;
@@ -27,6 +29,8 @@ export interface StatCardProps {
 export function StatCard({
   title,
   value,
+  subtitle,
+  icon: IconComponent,
   currency,
   changePercent,
   changeLabel = 'Total last month',
@@ -46,6 +50,7 @@ export function StatCard({
   },
 }: StatCardProps) {
   const isPositive = (changePercent ?? 0) >= 0;
+  const effectiveSubText = subText || subtitle;
 
   // 1. Euro Account Style: Gradient Blue with soft lighting and top-right arrow circle
   if (variant === 'gradient') {
@@ -201,7 +206,7 @@ export function StatCard({
           {title}
         </span>
         <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 group-hover:border-blue-200 transition-colors">
-          <ArrowUpRight className="w-4 h-4" />
+          {IconComponent ? <IconComponent className="w-4 h-4 text-blue-600" /> : <ArrowUpRight className="w-4 h-4" />}
         </div>
       </div>
 
@@ -224,10 +229,10 @@ export function StatCard({
           >
             {isPositive ? '+' : ''}{changePercent}%
           </span>
-        ) : subText ? (
-          <span className="text-slate-400 text-[11px] font-medium">{subText}</span>
+        ) : effectiveSubText ? (
+          <span className="text-slate-400 text-[11px] font-medium">{effectiveSubText}</span>
         ) : null}
-        <span className="text-slate-400 text-[11px] truncate">{changeLabel}</span>
+        {changePercent !== undefined && <span className="text-slate-400 text-[11px] truncate">{changeLabel}</span>}
       </div>
     </div>
   );

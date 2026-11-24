@@ -3,13 +3,10 @@
 import React, { useState } from 'react';
 import {
   Search,
-  Filter,
   Download,
   Printer,
   ChevronLeft,
   ChevronRight,
-  MoreVertical,
-  SlidersHorizontal,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -24,6 +21,7 @@ export interface Column<T> {
 export interface DataTableProps<T> {
   columns: Column<T>[];
   data: T[];
+  searchKey?: string;
   searchPlaceholder?: string;
   onSearch?: (term: string) => void;
   statusOptions?: { label: string; value: string }[];
@@ -84,24 +82,24 @@ export function DataTable<T extends Record<string, any>>({
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200/90 bg-white shadow-xs overflow-hidden">
+    <div className="rounded-2xl border border-slate-200/90 bg-white shadow-2xs overflow-hidden w-full">
       {/* Table Header Controls */}
-      <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           {title && <h2 className="text-base font-bold text-slate-900 tracking-tight">{title}</h2>}
           {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          {/* Status Tabs if provided */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+          {/* Status Filter Tabs if provided */}
           {statusOptions && (
-            <div className="flex items-center rounded-xl border border-slate-200 bg-slate-50 p-1 text-xs">
+            <div className="flex flex-wrap items-center rounded-xl border border-slate-200 bg-slate-50 p-1 text-xs">
               {statusOptions.map((opt) => (
                 <button
                   key={opt.value}
                   onClick={() => onStatusChange?.(opt.value)}
                   className={cn(
-                    'px-2.5 py-1 rounded-lg font-semibold transition-all',
+                    'px-2.5 py-1 rounded-lg font-semibold transition-all text-xs',
                     selectedStatus === opt.value
                       ? 'bg-blue-600 text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -114,30 +112,32 @@ export function DataTable<T extends Record<string, any>>({
           )}
 
           {/* Search Input */}
-          <div className="relative">
+          <div className="relative flex-1 sm:flex-initial min-w-[180px]">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
             <input
               type="text"
               placeholder={searchPlaceholder}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:border-blue-500 outline-none w-56 sm:w-64 transition-all"
+              className="pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:border-blue-500 outline-none w-full sm:w-60 transition-all"
             />
           </div>
 
-          {/* Export Menu */}
-          <div className="flex items-center space-x-1">
+          {/* Export Actions */}
+          <div className="flex items-center space-x-1 shrink-0">
             <button
               onClick={handleExportCSV}
-              className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+              className="p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
               title="Export CSV"
+              aria-label="Export table as CSV"
             >
               <Download className="w-4 h-4" />
             </button>
             <button
               onClick={handlePrint}
-              className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+              className="p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
               title="Print Table"
+              aria-label="Print table"
             >
               <Printer className="w-4 h-4" />
             </button>
@@ -147,16 +147,16 @@ export function DataTable<T extends Record<string, any>>({
         </div>
       </div>
 
-      {/* Table Container */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs">
+      {/* Horizontally Scrollable Table Container */}
+      <div className="overflow-x-auto w-full scrollbar-thin scrollbar-thumb-slate-200">
+        <table className="w-full text-left text-xs whitespace-nowrap sm:whitespace-normal">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50/70 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
               {columns.map((col, idx) => (
                 <th
                   key={idx}
                   className={cn(
-                    'py-3 px-4 font-semibold',
+                    'py-3 px-4 font-semibold whitespace-nowrap',
                     col.align === 'right' && 'text-right',
                     col.align === 'center' && 'text-center',
                     col.className
@@ -215,29 +215,31 @@ export function DataTable<T extends Record<string, any>>({
         </table>
       </div>
 
-      {/* Pagination Footer */}
-      <div className="p-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
-        <div>
+      {/* Responsive Pagination Footer */}
+      <div className="p-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs text-slate-500 font-medium">
+        <div className="text-center sm:text-left">
           Showing <span className="font-bold text-slate-900">{filteredData.length ? (currentPage - 1) * pageSize + 1 : 0}</span> to{' '}
           <span className="font-bold text-slate-900">{Math.min(currentPage * pageSize, filteredData.length)}</span> of{' '}
           <span className="font-bold text-slate-900">{filteredData.length}</span> entries
         </div>
 
-        <div className="flex items-center space-x-1.5">
+        <div className="flex items-center justify-center space-x-1.5">
           <button
             onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
             disabled={currentPage === 1}
-            className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            aria-label="Previous page"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <span className="px-2 font-mono text-xs">
+          <span className="px-3 font-mono text-xs font-semibold">
             {currentPage} / {totalPages}
           </span>
           <button
             onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            aria-label="Next page"
           >
             <ChevronRight className="w-4 h-4" />
           </button>

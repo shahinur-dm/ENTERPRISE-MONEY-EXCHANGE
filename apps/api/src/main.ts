@@ -19,10 +19,22 @@ async function bootstrap() {
 
   // CORS Configuration
   app.enableCors({
-    origin: (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,http://127.0.0.1:3000').split(','),
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, or same-origin rewrites)
+      if (!origin) return callback(null, true);
+      // Allow any localhost/127.0.0.1 or configured origin
+      if (
+        origin.includes('localhost') ||
+        origin.includes('127.0.0.1') ||
+        (process.env.ALLOWED_ORIGINS && process.env.ALLOWED_ORIGINS.split(',').includes(origin))
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true); // Permissive in dev/staging
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Idempotency-Key', 'X-Requested-With'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Idempotency-Key', 'X-Requested-With', 'Accept'],
   });
 
   // Global API Prefix
@@ -68,7 +80,7 @@ async function bootstrap() {
   }
 
   const port = process.env.PORT || 4000;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
 
   logger.log(`=============================================================`);
   logger.log(`  ENTERPRISE MONEY EXCHANGE & INTERNATIONAL REMITTANCE ERP  `);

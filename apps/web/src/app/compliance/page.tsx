@@ -10,13 +10,37 @@ import {
   UserCheck,
   Eye,
   FileCheck,
+  Download,
 } from 'lucide-react';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { DataTable, Column } from '@/components/ui/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { StatCard } from '@/components/ui/StatCard';
+
+interface ComplianceCase {
+  id: string;
+  party: string;
+  partyType: string;
+  orderId: string;
+  type: string;
+  riskScore: number;
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'PROHIBITED';
+  description: string;
+  status: string;
+  createdDate: string;
+}
 
 export default function ComplianceCenterPage() {
-  const [filter, setFilter] = useState('ALL');
+  const [selectedStatus, setSelectedStatus] = useState('ALL');
 
-  const cases = [
+  const stats = [
+    { title: 'Active Compliance Holds', value: '2', changePercent: 0, changeLabel: 'payouts frozen' },
+    { title: 'Screenings Cleared Today', value: '48', changePercent: 12.0, changeLabel: 'passed sanctions' },
+    { title: 'PEP / Watchlist Matches', value: '1', changePercent: 0, changeLabel: 'under investigation' },
+    { title: 'KYC Renewals Due', value: '14', changePercent: 3.2, changeLabel: 'expiring in 30 days' },
+  ];
+
+  const cases: ComplianceCase[] = [
     {
       id: 'CMP-CASE-202611-0081',
       party: 'Sultan Mahmud',
@@ -27,8 +51,7 @@ export default function ComplianceCenterPage() {
       riskLevel: 'HIGH',
       description: 'Single transaction of RM 15,000 exceeds standard retail threshold. Source of wealth declaration required.',
       status: 'on_hold',
-      createdDate: '2026-11-24 13:20',
-      assignedTo: 'Compliance Officer (Rahman)',
+      createdDate: '24 Nov 2026 13:20',
     },
     {
       id: 'CMP-CASE-202611-0079',
@@ -40,8 +63,7 @@ export default function ComplianceCenterPage() {
       riskLevel: 'PROHIBITED',
       description: 'Phonetic similarity match (84%) with Politically Exposed Person (PEP) database watchlist.',
       status: 'on_hold',
-      createdDate: '2026-11-24 13:22',
-      assignedTo: 'Compliance Officer (Rahman)',
+      createdDate: '24 Nov 2026 13:22',
     },
     {
       id: 'CMP-CASE-202611-0075',
@@ -53,108 +75,113 @@ export default function ComplianceCenterPage() {
       riskLevel: 'LOW',
       description: 'Trade license expiration date within 30 days notice window.',
       status: 'approved',
-      createdDate: '2026-11-23 10:15',
-      assignedTo: 'System Auto-Alert',
+      createdDate: '23 Nov 2026 10:15',
+    },
+  ];
+
+  const filtered = cases.filter((c) => {
+    if (selectedStatus === 'ALL') return true;
+    return c.status.toLowerCase() === selectedStatus.toLowerCase();
+  });
+
+  const columns: Column<ComplianceCase>[] = [
+    {
+      header: 'Case ID',
+      accessorKey: 'id',
+      cell: (item) => <span className="font-mono font-bold text-blue-600">{item.id}</span>,
+    },
+    {
+      header: 'Party & Order',
+      cell: (item) => (
+        <div>
+          <div className="font-bold text-slate-900">{item.party}</div>
+          <div className="text-[11px] text-slate-400 font-mono">{item.partyType} • {item.orderId}</div>
+        </div>
+      ),
+    },
+    {
+      header: 'Alert Type',
+      accessorKey: 'type',
+      cell: (item) => <span className="font-mono text-xs font-bold text-slate-700">{item.type}</span>,
+    },
+    {
+      header: 'Screening Details',
+      accessorKey: 'description',
+      cell: (item) => <p className="text-xs text-slate-600 max-w-sm">{item.description}</p>,
+    },
+    {
+      header: 'Risk Level',
+      cell: (item) => (
+        <span
+          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase font-mono border ${
+            item.riskLevel === 'PROHIBITED'
+              ? 'bg-rose-50 border-rose-200 text-rose-800'
+              : item.riskLevel === 'HIGH'
+              ? 'bg-amber-50 border-amber-200 text-amber-800'
+              : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+          }`}
+        >
+          {item.riskLevel} ({item.riskScore})
+        </span>
+      ),
+    },
+    {
+      header: 'Hold Status',
+      cell: (item) => <StatusBadge status={item.status} />,
+    },
+    {
+      header: 'Action',
+      align: 'right',
+      cell: (item) => (
+        <button
+          onClick={() => alert(`Reviewing Compliance Case: ${item.id}`)}
+          className="px-3 py-1 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
+        >
+          Investigate
+        </button>
+      ),
     },
   ];
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-4">
-        <div>
-          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center space-x-2">
-            <ShieldAlert className="w-5 h-5 text-rose-600" />
-            <span>Compliance, KYC & AML Screening Center</span>
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Real-time PEP & Sanctions screening, threshold limits, and institutional compliance holds.
-          </p>
-        </div>
+      <PageHeader
+        title="Compliance & AML Screening"
+        description="Automated Sanctions and PEP watchlist matching, transaction threshold alerts, and compliance hold management."
+        badge={
+          <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-rose-50 text-rose-700 border border-rose-200">
+            2 Active Compliance Holds
+          </span>
+        }
+      />
 
-        <div className="flex items-center space-x-2">
-          <div className="rounded-lg bg-rose-50 border border-rose-200 px-3 py-1.5 text-xs font-mono font-bold text-rose-800">
-            <span>Active Compliance Holds: </span>
-            <strong>2 Cases</strong>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {stats.map((s, i) => (
+          <StatCard
+            key={i}
+            title={s.title}
+            value={s.value}
+            changePercent={s.changePercent}
+            changeLabel={s.changeLabel}
+            variant="white"
+          />
+        ))}
       </div>
 
-      {/* Case Management Table */}
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-          <div className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-            Active Compliance Alerts & Watchlist Cases
-          </div>
-          <div className="flex space-x-1 text-xs">
-            {['ALL', 'ON_HOLD', 'UNDER_REVIEW', 'APPROVED'].map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-2.5 py-1 rounded font-semibold ${
-                  filter === f ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <table className="w-full text-left text-xs">
-          <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-              <th className="py-3 px-4">Case ID</th>
-              <th className="py-3 px-4">Involved Party</th>
-              <th className="py-3 px-4">Risk Category</th>
-              <th className="py-3 px-4">Screening Description</th>
-              <th className="py-3 px-4">Risk Level</th>
-              <th className="py-3 px-4">Status</th>
-              <th className="py-3 px-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {cases.map((c) => (
-              <tr key={c.id} className="hover:bg-slate-50 transition-colors">
-                <td className="py-3 px-4 font-mono font-bold text-blue-600">{c.id}</td>
-                <td className="py-3 px-4">
-                  <div className="font-bold text-slate-900">{c.party}</div>
-                  <div className="text-[10px] text-slate-400">{c.partyType} • {c.orderId}</div>
-                </td>
-                <td className="py-3 px-4 font-mono text-[11px] font-bold text-slate-700">
-                  {c.type}
-                </td>
-                <td className="py-3 px-4 text-slate-600 max-w-xs truncate">
-                  {c.description}
-                </td>
-                <td className="py-3 px-4">
-                  <span
-                    className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase font-mono ${
-                      c.riskLevel === 'PROHIBITED'
-                        ? 'bg-rose-100 text-rose-800'
-                        : c.riskLevel === 'HIGH'
-                        ? 'bg-amber-100 text-amber-800'
-                        : 'bg-emerald-100 text-emerald-800'
-                    }`}
-                  >
-                    {c.riskLevel} ({c.riskScore})
-                  </span>
-                </td>
-                <td className="py-3 px-4">
-                  <StatusBadge status={c.status} />
-                </td>
-                <td className="py-3 px-4 text-right">
-                  <button
-                    onClick={() => alert(`Reviewing case: ${c.id}`)}
-                    className="px-2.5 py-1 text-blue-600 hover:bg-blue-50 rounded text-xs font-semibold"
-                  >
-                    Investigate
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        title="Compliance Alerts & Watchlist Cases"
+        subtitle="Cases requiring compliance officer verification before disbursement release."
+        columns={columns}
+        data={filtered}
+        searchPlaceholder="Search case ID, party, or order..."
+        statusOptions={[
+          { label: 'All Cases', value: 'ALL' },
+          { label: 'On Hold', value: 'ON_HOLD' },
+          { label: 'Approved', value: 'APPROVED' },
+        ]}
+        selectedStatus={selectedStatus}
+        onStatusChange={setSelectedStatus}
+      />
     </div>
   );
 }

@@ -1,445 +1,453 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import {
-  Wallet,
+  ArrowRightLeft,
   ArrowDownLeft,
   ArrowUpRight,
   TrendingUp,
-  Landmark,
   Coins,
+  Send,
+  Calendar,
+  Download,
+  Plus,
+  ExternalLink,
+  MapPin,
+  Sparkles,
   ShieldAlert,
   ArrowRight,
+  Search,
   Filter,
-  RefreshCw,
-  FileSpreadsheet,
-  Printer,
 } from 'lucide-react';
-import { KPIStatCard } from '@/components/ui/KPIStatCard';
+import { StatCard } from '@/components/ui/StatCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import Link from 'next/link';
+import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 
 export default function DashboardPage() {
-  const [selectedFilter, setSelectedFilter] = useState('TODAY');
-  const [activeModal, setActiveModal] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'TRANSACTIONS' | 'CONVERSIONS'>('TRANSACTIONS');
 
-  // Six primary KPIs strictly from PRD Section 3 (Dashboard & UI)
-  const primaryKPIs = [
+  // Primary Top Balances inspired directly by reference image (FinanceFly layout)
+  const topAccounts = [
     {
-      id: 'GLOBAL_FUND',
-      title: 'Global Fund',
-      value: '8,500,000',
-      currencySymbol: '৳',
-      subtitle: 'BDT Equivalent (All Entities)',
-      changePercent: 4.8,
-      icon: <GlobeIcon />,
-      highlight: true,
-      route: '/funds',
-    },
-    {
-      id: 'MYR_BALANCE',
-      title: 'MYR Balance',
+      title: 'MYR Account (Operating)',
+      tag: 'Main',
       value: '150,000',
-      currencySymbol: 'RM',
-      subtitle: 'Malaysia Bank & Cash',
+      currency: 'MYR',
       changePercent: 2.1,
-      icon: <Coins className="w-4 h-4" />,
+      changeLabel: 'Total last month',
+      variant: 'gradient' as const,
       route: '/funds?currency=MYR',
     },
     {
-      id: 'BDT_BALANCE',
-      title: 'BDT Balance',
+      title: 'BDT Account (Settlement)',
       value: '3,550,000',
-      currencySymbol: '৳',
-      subtitle: 'Bangladesh Vault & Banks',
+      currency: 'BDT',
       changePercent: 6.4,
-      icon: <Landmark className="w-4 h-4" />,
+      changeLabel: 'Total last month',
+      variant: 'white' as const,
       route: '/funds?currency=BDT',
     },
     {
-      id: 'TODAY_PURCHASE',
-      title: "Today's Purchase",
+      title: 'US Dollar Reserve',
+      value: '25,000',
+      currency: 'USD',
+      changePercent: 1.5,
+      changeLabel: 'Recent activity: Today',
+      variant: 'white' as const,
+      route: '/funds?currency=USD',
+    },
+    {
+      title: 'Total Consolidated Balance',
+      tag: '+ Create account',
+      value: '8,500,000',
+      currency: 'BDT',
+      variant: 'breakdown' as const,
+      route: '/funds',
+    },
+  ];
+
+  // Secondary Institutional KPIs (Purchase, Sales, Profit, Pending)
+  const operationalKPIs = [
+    {
+      title: "Today's Currency Purchase",
       value: '850,000',
-      currencySymbol: '৳',
-      subtitle: 'Suppliers & Interbank FX',
+      currency: 'BDT',
       changePercent: -1.2,
-      icon: <ArrowDownLeft className="w-4 h-4" />,
+      changeLabel: 'Wholesale suppliers',
       route: '/exchange/buy',
     },
     {
-      id: 'TODAY_SALES',
-      title: "Today's Sales",
+      title: "Today's Currency Sales",
       value: '1,250,000',
-      currencySymbol: '৳',
-      subtitle: 'Wholesale & Retail FX',
+      currency: 'BDT',
       changePercent: 12.5,
-      icon: <ArrowUpRight className="w-4 h-4" />,
+      changeLabel: 'Corporate & Retail FX',
       route: '/exchange/sell',
     },
     {
-      id: 'TODAY_NET_PROFIT',
       title: "Today's Net Profit",
       value: '42,500',
-      currencySymbol: '৳',
-      subtitle: 'Realized FX & Fees',
+      currency: 'BDT',
       changePercent: 8.9,
-      icon: <TrendingUp className="w-4 h-4" />,
-      highlight: true,
-      route: '/accounting/reports',
+      changeLabel: 'Realized FX & service fees',
+      route: '/accounting/profit-loss',
+    },
+    {
+      title: 'Pending Remittance Payouts',
+      value: '18',
+      currency: 'Orders',
+      changePercent: -5.0,
+      changeLabel: 'Awaiting destination agent',
+      route: '/remittance?status=pending',
     },
   ];
 
-  const currencyHoldings = [
-    { currency: 'MYR', name: 'Malaysian Ringgit', quantity: '150,000.00', wacRate: '33.3333 BDT', carryingValue: '5,000,000.00 BDT', marketRate: '35.00 BDT', unrealizedProfit: '+250,000.00 BDT' },
-    { currency: 'BDT', name: 'Bangladeshi Taka', quantity: '3,550,000.00', wacRate: '1.0000 BDT', carryingValue: '3,550,000.00 BDT', marketRate: '1.00 BDT', unrealizedProfit: '0.00 BDT' },
-    { currency: 'USD', name: 'US Dollar', quantity: '25,000.00', wacRate: '118.5000 BDT', carryingValue: '2,962,500.00 BDT', marketRate: '121.20 BDT', unrealizedProfit: '+67,500.00 BDT' },
-    { currency: 'SAR', name: 'Saudi Riyal', quantity: '40,000.00', wacRate: '31.6000 BDT', carryingValue: '1,264,000.00 BDT', marketRate: '32.10 BDT', unrealizedProfit: '+20,000.00 BDT' },
-  ];
-
-  const recentTransactions = [
+  // Recent Transactions matching reference image table columns
+  const recentActivity = [
     {
-      id: 'REM-202611-001092',
-      type: 'Remittance Payout',
-      sender: 'Mohammad Faruk Hossain',
-      beneficiary: 'Rokeya Begum (Islami Bank BD)',
-      sourceAmount: 'RM 2,500.00',
-      destinationAmount: '৳ 87,500.00',
-      rate: '35.00',
+      id: 'Or-08187884478',
+      recipient: 'Islami Bank Bangladesh',
+      recipientSub: 'Beneficiary: Rokeya Begum',
+      account: 'Bank Account',
+      status: 'finalized',
+      amount: '87,500.00 BDT',
+      sourceAmount: '2,500.00 MYR',
+      dateSent: '24 Nov 2026',
+      rate: '35.00 BDT/MYR',
+      dateCompleted: '24 Nov 2026',
+    },
+    {
+      id: 'Or-08187884479',
+      recipient: 'bKash MFS Wallet',
+      recipientSub: 'Beneficiary: Amena Khatun',
+      account: 'Authorized MFS',
+      status: 'finalized',
+      amount: '42,000.00 BDT',
+      sourceAmount: '1,200.00 MYR',
+      dateSent: '24 Nov 2026',
+      rate: '35.00 BDT/MYR',
+      dateCompleted: '24 Nov 2026',
+    },
+    {
+      id: 'Or-08187884480',
+      recipient: 'Dutch-Bangla Bank',
+      recipientSub: 'Beneficiary: Shahidul Alam',
+      account: 'Bank Account',
       status: 'processing',
-      time: '12 mins ago',
+      amount: '175,000.00 BDT',
+      sourceAmount: '5,000.00 MYR',
+      dateSent: '24 Nov 2026',
+      rate: '35.00 BDT/MYR',
+      dateCompleted: 'Pending',
     },
     {
-      id: 'PUR-202611-000482',
-      type: 'Currency Purchase',
-      sender: 'Metro Forex Wholesale Ltd',
-      beneficiary: 'Kuala Lumpur Central Vault',
-      sourceAmount: 'RM 50,000.00',
-      destinationAmount: '৳ 1,650,000.00',
-      rate: '33.00',
-      status: 'settled',
-      time: '45 mins ago',
+      id: 'Or-08187884481',
+      recipient: 'Metro Forex Wholesale',
+      recipientSub: 'Supplier Purchase FX',
+      account: 'Corporate Treasury',
+      status: 'finalized',
+      amount: '3,300,000.00 BDT',
+      sourceAmount: '100,000.00 MYR',
+      dateSent: '24 Nov 2026',
+      rate: '33.00 BDT/MYR',
+      dateCompleted: '24 Nov 2026',
     },
     {
-      id: 'SAL-202611-000882',
-      type: 'Currency Sale',
-      sender: 'Rahim Trading Corp',
-      beneficiary: 'Cash Collection Desk',
-      sourceAmount: 'RM 10,000.00',
-      destinationAmount: '৳ 350,000.00',
-      rate: '35.00',
-      status: 'settled',
-      time: '1 hour ago',
+      id: 'Or-08187884482',
+      recipient: 'Rahim Trading Corp',
+      recipientSub: 'Wholesale FX Sale',
+      account: 'Commercial Account',
+      status: 'finalized',
+      amount: '700,000.00 BDT',
+      sourceAmount: '20,000.00 MYR',
+      dateSent: '24 Nov 2026',
+      rate: '35.00 BDT/MYR',
+      dateCompleted: '24 Nov 2026',
     },
-    {
-      id: 'REM-202611-001089',
-      type: 'Remittance Collection',
-      sender: 'Abdul Mannan',
-      beneficiary: 'Amena Khatun (bKash MFS)',
-      sourceAmount: 'RM 1,200.00',
-      destinationAmount: '৳ 42,000.00',
-      rate: '35.00',
-      status: 'collected',
-      time: '2 hours ago',
-    },
+  ];
+
+  // Live Exchange Rates Sparkline cards (Reference image bottom section)
+  const exchangeRates = [
+    { pair: 'MYR/BDT', rate: '35.00', change: '+1.20%', isUp: true, subtitle: 'Comparing to last month' },
+    { pair: 'USD/BDT', rate: '121.20', change: '+0.85%', isUp: true, subtitle: 'Comparing to last month' },
+    { pair: 'EUR/BDT', rate: '132.50', change: '-0.40%', isUp: false, subtitle: 'Comparing to last month' },
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Top Banner & Control Filters */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-5">
+    <div className="space-y-7">
+      {/* Top Welcome Heading & Quick Actions */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
-            Executive Financial Dashboard
-          </h1>
+          <div className="flex items-center space-x-2">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+              Good morning, Admin
+            </h1>
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
+              Verified Corridor
+            </span>
+          </div>
           <p className="text-xs text-slate-500 mt-1 font-medium">
-            Centralized multi-entity fund valuation, real-time FX inventory, and cross-border settlement.
+            Here is your financial overview across Malaysia and Bangladesh legal entities.
           </p>
         </div>
 
-        {/* Filter Toolbar matching PRD */}
-        <div className="flex items-center space-x-2">
-          <div className="flex items-center rounded-lg border border-slate-200 bg-white p-1 text-xs shadow-sm">
-            {['TODAY', 'YESTERDAY', '7 DAYS', 'MONTH', 'YEAR'].map((period) => (
-              <button
-                key={period}
-                onClick={() => setSelectedFilter(period)}
-                className={`px-2.5 py-1 rounded-md font-semibold transition-all ${
-                  selectedFilter === period
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
+        {/* Action Buttons & Date Range Selector */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* Date Range Selector Pill */}
+          <div className="flex items-center space-x-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 font-semibold shadow-2xs">
+            <Calendar className="w-3.5 h-3.5 text-slate-400" />
+            <span>1 Nov 2026 — 24 Nov 2026</span>
+          </div>
+
+          {/* Export Data */}
+          <button
+            onClick={() => window.print()}
+            className="flex items-center space-x-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors"
+          >
+            <Download className="w-3.5 h-3.5 text-slate-500" />
+            <span>Export Data</span>
+          </button>
+
+          {/* New Exchange Button */}
+          <Link
+            href="/exchange/buy"
+            className="flex items-center space-x-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-bold text-slate-800 hover:bg-slate-50 shadow-2xs active:scale-95 transition-all"
+          >
+            <ArrowRightLeft className="w-3.5 h-3.5 text-slate-500" />
+            <span>New Exchange</span>
+          </Link>
+
+          {/* New Remittance Primary CTA */}
+          <Link
+            href="/remittance"
+            className="flex items-center space-x-1.5 rounded-xl bg-blue-600 px-4 py-1.5 text-xs font-bold text-white shadow-md shadow-blue-600/20 hover:bg-blue-700 active:scale-95 transition-all"
+          >
+            <Send className="w-3.5 h-3.5" />
+            <span>Send Remittance</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* TOP BALANCES GRID (Fintech 4-Card Row matching reference image) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {topAccounts.map((card, idx) => (
+          <StatCard
+            key={idx}
+            title={card.title}
+            tag={card.tag}
+            value={card.value}
+            currency={card.currency}
+            changePercent={card.changePercent}
+            changeLabel={card.changeLabel}
+            variant={card.variant}
+            onClick={() => {
+              window.location.href = card.route;
+            }}
+          />
+        ))}
+      </div>
+
+      {/* SECONDARY OPERATIONAL KPI ROW */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {operationalKPIs.map((kpi, idx) => (
+          <StatCard
+            key={idx}
+            title={kpi.title}
+            value={kpi.value}
+            currency={kpi.currency}
+            changePercent={kpi.changePercent}
+            changeLabel={kpi.changeLabel}
+            variant="white"
+            onClick={() => {
+              window.location.href = kpi.route;
+            }}
+          />
+        ))}
+      </div>
+
+      {/* RECENT ACTIVITY SECTION (Matching Reference Image Table & Filter Pills) */}
+      <div className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 tracking-tight">Recent activity</h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Live settlement log for currency transactions and cross-border remittance orders.
+            </p>
+          </div>
+
+          {/* Filter Pills matching reference image */}
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setActiveTab('TRANSACTIONS')}
+              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                activeTab === 'TRANSACTIONS'
+                  ? 'bg-blue-600 text-white shadow-2xs'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              <ArrowRightLeft className="w-3.5 h-3.5" />
+              <span>Transactions</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('CONVERSIONS')}
+              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                activeTab === 'CONVERSIONS'
+                  ? 'bg-blue-600 text-white shadow-2xs'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              <Coins className="w-3.5 h-3.5" />
+              <span>Conversions</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Activity Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="border-b border-slate-200/80 bg-slate-50/70 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <th className="py-3 px-4">Transaction</th>
+                <th className="py-3 px-4">Recipient</th>
+                <th className="py-3 px-4">Account</th>
+                <th className="py-3 px-4">Status</th>
+                <th className="py-3 px-4">Amount</th>
+                <th className="py-3 px-4">Date sent</th>
+                <th className="py-3 px-4">Exchange rate</th>
+                <th className="py-3 px-4">Date completed</th>
+                <th className="py-3 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 font-mono">
+              {recentActivity.map((row) => (
+                <tr key={row.id} className="hover:bg-blue-50/20 transition-colors">
+                  <td className="py-3.5 px-4 font-bold text-slate-900 flex items-center space-x-2.5">
+                    <div className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-[10px]">
+                      TX
+                    </div>
+                    <span>{row.id}</span>
+                  </td>
+                  <td className="py-3.5 px-4 font-sans">
+                    <div className="font-bold text-slate-900 flex items-center space-x-1">
+                      <span>{row.recipient}</span>
+                      <ExternalLink className="w-3 h-3 text-slate-400" />
+                    </div>
+                    <div className="text-[11px] text-slate-500 font-mono">{row.recipientSub}</div>
+                  </td>
+                  <td className="py-3.5 px-4 font-sans text-slate-600">{row.account}</td>
+                  <td className="py-3.5 px-4 font-sans">
+                    <StatusBadge status={row.status} />
+                  </td>
+                  <td className="py-3.5 px-4 font-bold text-slate-900">{row.amount}</td>
+                  <td className="py-3.5 px-4 font-sans text-slate-500">{row.dateSent}</td>
+                  <td className="py-3.5 px-4 text-slate-600">{row.rate}</td>
+                  <td className="py-3.5 px-4 font-sans text-slate-500">{row.dateCompleted}</td>
+                  <td className="py-3.5 px-4 text-right font-sans">
+                    <button
+                      onClick={() => alert(`Tracking transaction: ${row.id}`)}
+                      className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50/50 text-[11px] font-semibold transition-all"
+                    >
+                      <MapPin className="w-3 h-3" />
+                      <span>Tracker</span>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* BOTTOM SECTION: Live Exchange Rate Cards & Manage FX Risk Widget (matching reference image) */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Left 2 Cols: Exchange Rate Sparkline Cards */}
+        <div className="xl:col-span-2 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-bold text-slate-900 tracking-tight">Exchange rates</h2>
+            <button
+              onClick={() => alert('Rate Alert Subscription Modal')}
+              className="text-xs font-semibold text-slate-600 hover:text-blue-600 flex items-center space-x-1"
+            >
+              <Coins className="w-3.5 h-3.5 text-slate-400" />
+              <span>Create alert</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {exchangeRates.map((ex, idx) => (
+              <div
+                key={idx}
+                className="rounded-2xl p-5 bg-white border border-slate-200/90 shadow-2xs space-y-3"
               >
-                {period}
-              </button>
+                <div className="flex items-center justify-between text-xs text-slate-500 font-semibold font-mono">
+                  <span>{ex.pair}</span>
+                  <Coins className="w-4 h-4 text-slate-400" />
+                </div>
+                <div className="flex items-baseline space-x-2">
+                  <span className="text-2xl font-extrabold text-slate-900 font-mono">{ex.rate}</span>
+                </div>
+                {/* Micro visual sparkline bar */}
+                <div className="h-6 w-full flex items-end space-x-1 pt-1">
+                  {[40, 55, 45, 60, 75, 65, 80, 95].map((h, i) => (
+                    <div
+                      key={i}
+                      className={`w-full rounded-xs transition-all ${
+                        ex.isUp ? 'bg-emerald-400/60' : 'bg-rose-400/60'
+                      }`}
+                      style={{ height: `${h}%` }}
+                    />
+                  ))}
+                </div>
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                  <span
+                    className={`font-mono font-bold px-1.5 py-0.5 rounded ${
+                      ex.isUp ? 'text-emerald-700 bg-emerald-50' : 'text-rose-700 bg-rose-50'
+                    }`}
+                  >
+                    {ex.change}
+                  </span>
+                  <span className="text-slate-400 truncate">{ex.subtitle}</span>
+                </div>
+              </div>
             ))}
           </div>
-
-          <button
-            onClick={() => setActiveModal('FILTER')}
-            className="flex items-center space-x-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-sm"
-          >
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
-            <span>Branch Filter</span>
-          </button>
-        </div>
-      </div>
-
-      {/* SIX PRIMARY KPIS IN ONE ROW ON DESKTOP - PRD MANDATORY REQUIREMENT */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-            Executive Financial Positions
-          </span>
-          <div className="flex items-center space-x-4 text-xs font-mono text-slate-500">
-            <span>
-              Pending Transfers: <strong className="text-blue-600">18</strong>
-            </span>
-            <span>•</span>
-            <span>
-              Active Branches / Agents: <strong className="text-emerald-600">6 / 24</strong>
-            </span>
-          </div>
         </div>
 
-        {/* Grid: 1 col on mobile, 2 col on tablet, 6 columns in one single row on desktop */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
-          {primaryKPIs.map((kpi) => (
-            <KPIStatCard
-              key={kpi.id}
-              title={kpi.title}
-              value={kpi.value}
-              currencySymbol={kpi.currencySymbol}
-              subtitle={kpi.subtitle}
-              changePercent={kpi.changePercent}
-              icon={kpi.icon}
-              highlight={kpi.highlight}
-              onClick={() => {
-                window.location.href = kpi.route;
-              }}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Main Operational Split Section */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Left 2 Cols: Real-time FX Inventory & Holdings */}
-        <div className="xl:col-span-2 space-y-6">
-          <div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-sm font-bold text-slate-900 tracking-tight">
-                  Currency Holdings & Weighted Average Cost (WAC) Position
-                </h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Inventory valued according to institutional WAC carrying ledger.
-                </p>
-              </div>
-              <Link
-                href="/exchange/rates"
-                className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center space-x-1"
-              >
-                <span>View Rate Board</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+        {/* Right 1 Col: Manage FX Risk Advisory Card (matching reference image) */}
+        <div className="rounded-2xl p-6 bg-gradient-to-br from-blue-50 via-indigo-50/40 to-slate-50 border border-blue-200/60 shadow-2xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center space-x-2 text-blue-700 mb-2 font-bold text-xs uppercase tracking-wider">
+              <Sparkles className="w-4 h-4 text-blue-600" />
+              <span>Treasury & Hedging</span>
             </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                    <th className="py-2.5 px-3">Currency</th>
-                    <th className="py-2.5 px-3">Holding Quantity</th>
-                    <th className="py-2.5 px-3">WAC Cost Basis</th>
-                    <th className="py-2.5 px-3">Carrying Valuation</th>
-                    <th className="py-2.5 px-3">Market Quote</th>
-                    <th className="py-2.5 px-3 text-right">Unrealized Gain</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 font-mono">
-                  {currencyHoldings.map((row) => (
-                    <tr key={row.currency} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3 px-3 font-sans font-bold text-slate-900 flex items-center space-x-2">
-                        <span className="w-6 h-6 rounded-md bg-blue-50 text-blue-700 flex items-center justify-center font-bold text-xs">
-                          {row.currency}
-                        </span>
-                        <span>{row.name}</span>
-                      </td>
-                      <td className="py-3 px-3 font-semibold text-slate-800">{row.quantity}</td>
-                      <td className="py-3 px-3 text-slate-600">{row.wacRate}</td>
-                      <td className="py-3 px-3 font-semibold text-slate-900">{row.carryingValue}</td>
-                      <td className="py-3 px-3 text-slate-600">{row.marketRate}</td>
-                      <td className="py-3 px-3 text-right font-bold text-emerald-600">
-                        {row.unrealizedProfit}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Recent Operations Table */}
-          <div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-sm font-bold text-slate-900 tracking-tight">
-                  Recent Operational Transactions
-                </h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Live transaction stream across authorized corridors and branches.
-                </p>
-              </div>
-              <Link
-                href="/remittance"
-                className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center space-x-1"
-              >
-                <span>All Orders</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                    <th className="py-2.5 px-3">Transaction ID</th>
-                    <th className="py-2.5 px-3">Type</th>
-                    <th className="py-2.5 px-3">Parties</th>
-                    <th className="py-2.5 px-3">Source Amount</th>
-                    <th className="py-2.5 px-3">Destination</th>
-                    <th className="py-2.5 px-3">Status</th>
-                    <th className="py-2.5 px-3 text-right">Time</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {recentTransactions.map((tx) => (
-                    <tr key={tx.id} className="hover:bg-slate-50/80 transition-colors font-mono">
-                      <td className="py-3 px-3 font-bold text-blue-600">
-                        <Link href={`/remittance?id=${tx.id}`} className="hover:underline">
-                          {tx.id}
-                        </Link>
-                      </td>
-                      <td className="py-3 px-3 font-sans text-slate-700">{tx.type}</td>
-                      <td className="py-3 px-3 font-sans">
-                        <div className="font-semibold text-slate-900">{tx.sender}</div>
-                        <div className="text-[11px] text-slate-500">{tx.beneficiary}</div>
-                      </td>
-                      <td className="py-3 px-3 font-semibold text-slate-900">{tx.sourceAmount}</td>
-                      <td className="py-3 px-3 font-semibold text-slate-900">{tx.destinationAmount}</td>
-                      <td className="py-3 px-3 font-sans">
-                        <StatusBadge status={tx.status} />
-                      </td>
-                      <td className="py-3 px-3 font-sans text-right text-slate-400 text-[11px]">
-                        {tx.time}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        {/* Right 1 Col: Compliance, Sanctions Alerts & Quick Execution */}
-        <div className="space-y-6">
-          {/* Compliance & AML Watchlist Card */}
-          <div className="rounded-xl border border-rose-200 bg-rose-50/30 p-5 shadow-sm">
-            <div className="flex items-center space-x-2.5 text-rose-700 mb-3">
-              <ShieldAlert className="w-5 h-5 text-rose-600" />
-              <h2 className="text-sm font-bold tracking-tight">Compliance & Screening Alerts</h2>
-            </div>
-            <p className="text-xs text-slate-600 mb-4 leading-relaxed">
-              Automated sanctions monitoring, high-value transaction thresholds, and document verification holds.
+            <h3 className="text-xl font-extrabold text-slate-900 tracking-tight leading-tight">
+              Manage FX risk
+            </h3>
+            <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+              Protect your business against cross-border currency volatility with a suite of locking forward contracts and spot rate freezes.
             </p>
-
-            <div className="space-y-3">
-              <div className="rounded-lg border border-rose-200 bg-white p-3 shadow-xs">
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="font-bold text-rose-700">Threshold Limit Alert</span>
-                  <StatusBadge status="under_review" />
-                </div>
-                <p className="text-xs text-slate-600">
-                  Transaction <strong>REM-1092</strong> exceeds RM 50,000 threshold. Source of funds documentation required before release.
-                </p>
-                <div className="mt-2 flex items-center justify-between text-[11px] text-slate-400">
-                  <span>Kuala Lumpur Branch</span>
-                  <Link href="/compliance" className="font-semibold text-rose-600 hover:underline">
-                    Review Case →
-                  </Link>
-                </div>
-              </div>
-
-              <div className="rounded-lg border border-purple-200 bg-white p-3 shadow-xs">
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="font-bold text-purple-700">PEP / Watchlist Check</span>
-                  <StatusBadge status="on_hold" />
-                </div>
-                <p className="text-xs text-slate-600">
-                  Beneficiary name matched partial pattern on Central Bank Watchlist. Payout disbursement frozen.
-                </p>
-                <div className="mt-2 flex items-center justify-between text-[11px] text-slate-400">
-                  <span>Dhaka Motijheel HQ</span>
-                  <Link href="/compliance" className="font-semibold text-purple-600 hover:underline">
-                    Investigate →
-                  </Link>
-                </div>
-              </div>
-            </div>
           </div>
 
-          {/* Institutional Integrity Checklist Card */}
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-sm font-bold text-slate-900 mb-3">Accounting Ledger Health</h2>
-            <ul className="space-y-2.5 text-xs">
-              <li className="flex items-center justify-between p-2 rounded-lg bg-slate-50">
-                <span className="text-slate-600 font-medium">Trial Balance Equilibrium</span>
-                <span className="font-mono font-bold text-emerald-600">BALANCED (0.00)</span>
-              </li>
-              <li className="flex items-center justify-between p-2 rounded-lg bg-slate-50">
-                <span className="text-slate-600 font-medium">Customer Funds Segregation</span>
-                <span className="font-mono font-bold text-emerald-600">100% COMPLIANT</span>
-              </li>
-              <li className="flex items-center justify-between p-2 rounded-lg bg-slate-50">
-                <span className="text-slate-600 font-medium">Active Accounting Period</span>
-                <span className="font-mono font-bold text-blue-600">NOVEMBER 2026</span>
-              </li>
-              <li className="flex items-center justify-between p-2 rounded-lg bg-slate-50">
-                <span className="text-slate-600 font-medium">Maker-Checker Policy</span>
-                <span className="font-mono font-bold text-slate-800">ENFORCED (STRICT)</span>
-              </li>
-            </ul>
-
-            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-              <Link
-                href="/accounting"
-                className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
-              >
-                Open General Ledger
-              </Link>
-              <Link
-                href="/accounting/trial-balance"
-                className="text-xs font-semibold text-slate-600 hover:text-slate-900 hover:underline"
-              >
-                Trial Balance
-              </Link>
-            </div>
+          <div className="mt-6 pt-4 border-t border-blue-200/50">
+            <button
+              onClick={() => alert('Forward FX Hedge Quote modal opened')}
+              className="w-full flex items-center justify-center space-x-2 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 active:scale-95 transition-all cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>New forward contract</span>
+            </button>
           </div>
         </div>
+      </div>
+
+      {/* Institutional Legal & Demo Watermark */}
+      <div className="p-3.5 rounded-xl border border-slate-200 bg-white/60 text-center text-xs text-slate-500 flex items-center justify-center space-x-2">
+        <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping" />
+        <span>
+          <strong>DAWAT ERP v1.0 Enterprise Edition</strong> • Operating under Bank Negara Malaysia & Bangladesh Bank regulatory framework.
+        </span>
       </div>
     </div>
-  );
-}
-
-function GlobeIcon() {
-  return (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
-      />
-    </svg>
   );
 }

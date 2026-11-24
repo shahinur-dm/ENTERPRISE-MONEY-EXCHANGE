@@ -25,7 +25,17 @@ async function seedEnterpriseDemo() {
     await currencyService.seedInitialRates();
 
     logger.log('3. Verifying Standard Chart of Accounts (COA)...');
-    await accountingService.seedStandardCOA();
+    const orgs = await orgService.getOrganizations();
+    if (orgs.length > 0) {
+      const entities = await orgService.getLegalEntities(orgs[0]._id.toString());
+      for (const ent of entities) {
+        await accountingService.seedStandardCOA(
+          orgs[0]._id.toString(),
+          ent._id.toString(),
+          (ent as any).functionalCurrency || 'USD'
+        );
+      }
+    }
 
     logger.log(`4. Seeded ${DEMO_CUSTOMERS.length} Customers.`);
     logger.log(`5. Seeded ${DEMO_SUPPLIERS.length} Wholesale Suppliers.`);

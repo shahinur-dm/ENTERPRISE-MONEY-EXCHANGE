@@ -7,8 +7,9 @@ export class BranchScopeGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user: AuthSessionPayload = request.user;
 
+    // If no authenticated user session is attached (e.g. public routes like login), skip branch check
     if (!user) {
-      throw new ForbiddenException('User authentication session required');
+      return true;
     }
 
     // MASTER_ADMIN has global scope across all branches

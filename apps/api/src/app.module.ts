@@ -6,6 +6,9 @@ import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { OrganizationModule } from './modules/organization/organization.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { AccountingModule } from './modules/accounting/accounting.module';
+import { CurrencyModule } from './modules/currency/currency.module';
+import { RemittanceModule } from './modules/remittance/remittance.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { RolesGuard } from './common/guards/roles.guard';
@@ -28,6 +31,9 @@ import { BranchScopeGuard } from './common/guards/branch-scope.guard';
     AuthModule,
     OrganizationModule,
     DashboardModule,
+    AccountingModule,
+    CurrencyModule,
+    RemittanceModule,
   ],
   providers: [
     {

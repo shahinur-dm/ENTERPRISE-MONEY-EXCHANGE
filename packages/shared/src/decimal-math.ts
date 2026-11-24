@@ -34,11 +34,19 @@ export class DecimalMath {
     return DecimalMath.from(a).minus(DecimalMath.from(b));
   }
 
+  static subtract(a: string | number | Decimal, b: string | number | Decimal): Decimal {
+    return DecimalMath.sub(a, b);
+  }
+
   /**
    * Multiplication: a * b
    */
   static mul(a: string | number | Decimal, b: string | number | Decimal): Decimal {
     return DecimalMath.from(a).times(DecimalMath.from(b));
+  }
+
+  static multiply(a: string | number | Decimal, b: string | number | Decimal): Decimal {
+    return DecimalMath.mul(a, b);
   }
 
   /**
@@ -50,6 +58,33 @@ export class DecimalMath {
       throw new Error('ZeroDivisionError: Division by zero is prohibited in financial operations.');
     }
     return DecimalMath.from(a).dividedBy(divisor);
+  }
+
+  static divide(a: string | number | Decimal, b: string | number | Decimal): Decimal {
+    return DecimalMath.div(a, b);
+  }
+
+  /**
+   * Comparison helpers
+   */
+  static equals(a: string | number | Decimal, b: string | number | Decimal): boolean {
+    return DecimalMath.from(a).equals(DecimalMath.from(b));
+  }
+
+  static lessThan(a: string | number | Decimal, b: string | number | Decimal): boolean {
+    return DecimalMath.from(a).lessThan(DecimalMath.from(b));
+  }
+
+  static greaterThan(a: string | number | Decimal, b: string | number | Decimal): boolean {
+    return DecimalMath.from(a).greaterThan(DecimalMath.from(b));
+  }
+
+  static lessThanOrEqualTo(a: string | number | Decimal, b: string | number | Decimal): boolean {
+    return DecimalMath.from(a).lessThanOrEqualTo(DecimalMath.from(b));
+  }
+
+  static greaterThanOrEqualTo(a: string | number | Decimal, b: string | number | Decimal): boolean {
+    return DecimalMath.from(a).greaterThanOrEqualTo(DecimalMath.from(b));
   }
 
   /**

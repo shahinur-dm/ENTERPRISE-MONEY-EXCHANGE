@@ -3,6 +3,7 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { CurrencyService } from './modules/currency/currency.service';
 
 async function bootstrap() {
   const logger = new Logger('EnterpriseBootstrap');
@@ -50,10 +51,21 @@ async function bootstrap() {
     .addTag('Authentication', 'Session lifecycle, JWT tokens, and TOTP 2FA')
     .addTag('Organization & Entities', 'Multi-tenant, multi-country, legal entities and branches')
     .addTag('Institutional Dashboard', 'Executive financial KPIs, positions, and operational alerts')
+    .addTag('Financial Accounting & General Ledger', 'Double-entry journals, Chart of accounts, and Trial balance')
+    .addTag('Currency & FX Operations', 'Spot trading, real-time WAC revaluation, and inventory pools')
+    .addTag('Cross-Border Remittance & Payouts', '16-state transfer lifecycle and payout settlements')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
+
+  // Seed initial exchange rates if missing
+  try {
+    const currencyService = app.get(CurrencyService);
+    await currencyService.seedInitialRates();
+  } catch (err: any) {
+    logger.warn(`Initial rate seeding skipped: ${err?.message}`);
+  }
 
   const port = process.env.PORT || 4000;
   await app.listen(port);

@@ -21,6 +21,12 @@ export class Currency {
   @Prop({ default: true })
   isFiat: boolean;
 
+  @Prop({ default: false })
+  isLocal: boolean;
+
+  @Prop({ trim: true, default: 'symbol-prefix' })
+  displayFormat: string;
+
   @Prop({ type: String, enum: SystemStatus, default: SystemStatus.ACTIVE })
   status: SystemStatus;
 }

@@ -5,10 +5,13 @@ import {
   Coins,
   Receipt,
   History,
+  Boxes,
   Send,
   UserCheck,
   Users,
   UserCog,
+  Briefcase,
+  BookOpen,
   Landmark,
   Building2,
   Wallet,
@@ -32,6 +35,8 @@ import {
   GitBranch,
   Building,
   Sliders,
+  CalendarCheck,
+  FileDiff,
   LucideIcon,
 } from 'lucide-react';
 
@@ -60,9 +65,43 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
     items: [
       { label: 'Buy Currency', href: '/exchange/buy', icon: ArrowDownLeft },
       { label: 'Sell Currency', href: '/exchange/sell', icon: ArrowUpRight },
-      { label: 'Exchange Rates', href: '/exchange/rates', icon: Coins },
+      { label: 'Currency Stock Inventory', href: '/exchange/stock', icon: Boxes, badge: 'WAC' },
       { label: 'Purchase History', href: '/exchange/purchases', icon: Receipt },
       { label: 'Sales History', href: '/exchange/sales', icon: History },
+      { label: 'Exchange Rates', href: '/exchange/rates', icon: Coins },
+    ],
+  },
+  {
+    name: 'PARTY MANAGEMENT',
+    items: [
+      { label: 'Customers', href: '/parties/customers', icon: Users },
+      { label: 'Wholesale Dealers', href: '/parties/dealers', icon: Briefcase },
+      { label: 'Party Ledger', href: '/parties/ledger', icon: BookOpen },
+    ],
+  },
+  {
+    name: 'FINANCIAL MANAGEMENT',
+    items: [
+      { label: 'Customer Payments', href: '/financials/payments', icon: ArrowDownLeft },
+      { label: 'Buyer Receipts', href: '/financials/receipts', icon: ArrowUpRight },
+      { label: 'Cash & Bank Accounts', href: '/financials/accounts', icon: Building2 },
+      { label: 'Internal Transfers', href: '/transfers', icon: ArrowRightLeft },
+      { label: 'Business Expenses', href: '/financials/expenses', icon: CreditCard },
+    ],
+  },
+  {
+    name: 'CONTROLS & RECONCILIATIONS',
+    items: [
+      { label: 'Daily Business Closing', href: '/controls/daily-closing', icon: CalendarCheck, badge: 'Lock' },
+      { label: 'Stock Adjustments', href: '/controls/stock-adjustments', icon: FileDiff },
+    ],
+  },
+  {
+    name: 'REPORTS & STATEMENTS',
+    items: [
+      { label: 'Daily Business Summary', href: '/reports/daily-summary', icon: BarChart3 },
+      { label: 'Profit & Loss', href: '/reports/profit-loss', icon: TrendingUp },
+      { label: 'Currency Stock Ledger', href: '/reports/stock-ledger', icon: FileSpreadsheet },
     ],
   },
   {
@@ -70,17 +109,7 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
     items: [
       { label: 'Remittances', href: '/remittance', icon: Send, badge: 'Live' },
       { label: 'Beneficiaries', href: '/beneficiaries', icon: UserCheck },
-      { label: 'Customers', href: '/customers', icon: Users },
       { label: 'Agents', href: '/agents', icon: UserCog },
-    ],
-  },
-  {
-    name: 'TREASURY & ACCOUNTS',
-    items: [
-      { label: 'Fund Management', href: '/funds', icon: Landmark },
-      { label: 'Bank Accounts', href: '/funds/banks', icon: Building2 },
-      { label: 'Cash Management', href: '/funds/cash', icon: Wallet },
-      { label: 'Internal Transfers', href: '/transfers', icon: ArrowRightLeft },
     ],
   },
   {
@@ -90,7 +119,6 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
       { label: 'Journal Entries', href: '/accounting/journals', icon: FileText },
       { label: 'General Ledger', href: '/accounting/ledger', icon: FileSpreadsheet },
       { label: 'Trial Balance', href: '/accounting/trial-balance', icon: Scale },
-      { label: 'Profit & Loss', href: '/accounting/profit-loss', icon: TrendingUp },
       { label: 'Balance Sheet', href: '/accounting/balance-sheet', icon: PieChart },
     ],
   },
@@ -99,18 +127,8 @@ export const NAVIGATION_GROUPS: NavGroup[] = [
     items: [
       { label: 'Compliance & AML', href: '/compliance', icon: ShieldAlert, badge: 'AML' },
       { label: 'KYC Management', href: '/compliance/kyc', icon: FileCheck2 },
-      { label: 'Approvals', href: '/approvals', icon: CheckSquare, badge: '3' },
+      { label: 'Approvals', href: '/approvals', icon: CheckSquare },
       { label: 'Audit Logs', href: '/audit-logs', icon: ClipboardList },
-    ],
-  },
-  {
-    name: 'BUSINESS MANAGEMENT',
-    items: [
-      { label: 'Suppliers', href: '/suppliers', icon: Truck },
-      { label: 'Employees', href: '/employees', icon: Users },
-      { label: 'Payroll', href: '/payroll', icon: Banknote },
-      { label: 'Expenses', href: '/expenses', icon: CreditCard },
-      { label: 'Reports', href: '/reports', icon: BarChart3 },
     ],
   },
   {

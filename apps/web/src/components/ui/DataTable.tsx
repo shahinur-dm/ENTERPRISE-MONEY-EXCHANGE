@@ -31,6 +31,8 @@ export interface DataTableProps<T> {
   title?: string;
   subtitle?: string;
   isLoading?: boolean;
+  loading?: boolean;
+  emptyMessage?: string;
 }
 
 export function DataTable<T extends Record<string, any>>({
@@ -44,7 +46,10 @@ export function DataTable<T extends Record<string, any>>({
   title,
   subtitle,
   isLoading = false,
+  loading = false,
+  emptyMessage = 'No records found',
 }: DataTableProps<T>) {
+  const effectiveLoading = isLoading || loading;
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
@@ -168,7 +173,7 @@ export function DataTable<T extends Record<string, any>>({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {isLoading ? (
+            {effectiveLoading ? (
               <tr>
                 <td colSpan={columns.length} className="py-12 text-center text-slate-400">
                   <div className="inline-block animate-spin w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full mb-2" />
@@ -181,7 +186,7 @@ export function DataTable<T extends Record<string, any>>({
                   <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-2 text-slate-400">
                     <Search className="w-5 h-5" />
                   </div>
-                  <div className="font-semibold text-slate-600">No matching records found</div>
+                  <div className="font-semibold text-slate-600">{emptyMessage}</div>
                   <div className="text-[11px] text-slate-400 mt-0.5">Try adjusting your filters or search keywords.</div>
                 </td>
               </tr>

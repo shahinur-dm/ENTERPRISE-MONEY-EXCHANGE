@@ -460,20 +460,181 @@ export interface IComplianceScreening {
 }
 
 // ==========================================
-// 10. Audit Log Types
+// 11. Party & Money Exchange Business Types
 // ==========================================
 
-export interface IAuditLog {
+export enum PartyType {
+  CUSTOMER = 'CUSTOMER',
+  DEALER = 'DEALER',
+  SUPPLIER = 'SUPPLIER',
+  AGENT = 'AGENT',
+  BOTH = 'BOTH',
+}
+
+export interface IParty {
   _id: string;
+  partyNo: string;
+  name: string;
+  businessName?: string;
+  partyType: PartyType;
+  phone: string;
+  altPhone?: string;
+  email?: string;
+  address?: string;
+  nidOrPassport?: string;
+  openingBalance: string; // in BDT
+  currentBalance: string; // Positive = Receivable from party, Negative = Payable to party
+  advanceBalance: string; // BDT advance held
+  status: SystemStatus;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum StockMovementType {
+  PURCHASE = 'PURCHASE',
+  SALE = 'SALE',
+  REVERSAL_PURCHASE = 'REVERSAL_PURCHASE',
+  REVERSAL_SALE = 'REVERSAL_SALE',
+  REVERSAL_IN = 'REVERSAL_IN',
+  REVERSAL_OUT = 'REVERSAL_OUT',
+  ADJUSTMENT = 'ADJUSTMENT',
+  OPENING = 'OPENING',
+}
+
+export interface IStockMovement {
+  _id: string;
+  movementNo: string;
+  timestamp: Date;
+  transactionId?: string;
+  movementType: StockMovementType;
+  currencyCode: string;
+  openingQuantity: string;
+  inflowQuantity: string;
+  outflowQuantity: string;
+  closingQuantity: string;
+  unitCostRate: string;
+  bdtValuation: string;
+  reference: string;
+  operatorId: string;
+  memo?: string;
+}
+
+export interface IBusinessExpense {
+  _id: string;
+  expenseNo: string;
+  date: Date;
+  category: string;
+  description: string;
+  amountBDT: string;
+  paymentAccountId: string;
+  paidTo?: string;
+  voucherRef?: string;
+  operatorId: string;
+  notes?: string;
+  status: 'PAID' | 'CANCELLED';
+}
+
+export interface IDailyClosing {
+  _id: string;
+  closingDate: string; // YYYY-MM-DD
   organizationId: string;
-  userId: string;
-  action: string;
-  module: PermissionModule;
-  entityId: string;
-  ipAddress: string;
-  userAgent?: string;
-  beforeState?: Record<string, unknown>;
-  afterState?: Record<string, unknown>;
-  changeHash: string;
+  legalEntityId: string;
+  branchId: string;
+  totalPurchaseBDT: string;
+  totalSalesBDT: string;
+  grossProfitBDT: string;
+  totalExpensesBDT: string;
+  netProfitBDT: string;
+  systemExpectedCash: string;
+  actualCashCounted: string;
+  cashDifference: string;
+  currencyStockSummary: Array<{
+    currencyCode: string;
+    systemStock: string;
+    actualStock: string;
+    difference: string;
+    averageCost: string;
+  }>;
+  differenceReasons?: string;
+  isClosed: boolean;
+  closedBy: string;
+  closedAt: Date;
+}
+
+export interface IStockAdjustment {
+  _id: string;
+  adjustmentNo: string;
+  date: Date;
+  currencyCode: string;
+  systemStock: string;
+  physicalStock: string;
+  differenceQty: string;
+  adjustmentType: 'SURPLUS' | 'SHORTAGE';
+  unitCostRate: string;
+  bdtValuationImpact: string;
+  reason: string;
+  operatorId: string;
+  approvedBy?: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+}
+
+export interface IPartyLedgerEntry {
+  _id: string;
+  partyId: string;
+  partyName: string;
+  partyType: PartyType;
+  date: string;
+  voucherNo: string;
+  transactionType: 'PURCHASE' | 'SALE' | 'PAYMENT' | 'RECEIPT' | 'ADVANCE' | 'REVERSAL' | 'OPENING';
+  currencyContext?: string;
+  foreignQuantity?: string;
+  rate?: string;
+  debitBDT: string; // Increases party balance (receivable from party)
+  creditBDT: string; // Decreases party balance (payable to party)
+  balanceBDT: string;
+  notes?: string;
+  operatorId: string;
   timestamp: Date;
 }
+
+
+export interface IPartyLedgerEntry {
+  _id: string;
+  partyId: string;
+  partyName: string;
+  partyType: PartyType;
+  date: string;
+  voucherNo: string;
+  transactionType: 'PURCHASE' | 'SALE' | 'PAYMENT' | 'RECEIPT' | 'ADVANCE' | 'REVERSAL' | 'OPENING';
+  currencyContext?: string;
+  foreignQuantity?: string;
+  rate?: string;
+  debitBDT: string; // Increases party balance (receivable)
+  creditBDT: string; // Decreases party balance (payable)
+  balanceBDT: string;
+  notes?: string;
+  operatorId: string;
+  timestamp: Date;
+}
+
+export interface IFinancialTransaction {
+  _id: string;
+  transactionNo: string;
+  date: Date;
+  accountId: string;
+  accountName: string;
+  accountType: FinancialAccountType;
+  voucherType: 'PURCHASE' | 'SALE' | 'PAYMENT' | 'RECEIPT' | 'TRANSFER' | 'EXPENSE' | 'ADJUSTMENT';
+  referenceVoucherNo?: string;
+  partyId?: string;
+  partyName?: string;
+  debitBDT: string; // Inflow
+  creditBDT: string; // Outflow
+  runningBalanceBDT: string;
+  description: string;
+  operatorId: string;
+  createdAt: Date;
+}
+
+

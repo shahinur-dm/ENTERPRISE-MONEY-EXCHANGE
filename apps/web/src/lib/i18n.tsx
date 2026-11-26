@@ -32,17 +32,19 @@ const toBengaliNumeral = (numStr: string): string => {
 };
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>('en');
+  const [locale, setLocaleState] = useState<Locale>('bn');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('erp_lang') as Locale;
       if (saved && (saved === 'en' || saved === 'bn')) {
         setLocaleState(saved);
+      } else {
+        setLocaleState('bn');
       }
 
       const handleLangChange = () => {
-        const current = (localStorage.getItem('erp_lang') as Locale) || 'en';
+        const current = (localStorage.getItem('erp_lang') as Locale) || 'bn';
         setLocaleState(current);
       };
 

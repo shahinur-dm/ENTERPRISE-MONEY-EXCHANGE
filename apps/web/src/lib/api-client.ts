@@ -54,8 +54,6 @@ export class ApiClient {
         headers,
       });
 
-      const json = await res.json();
-
       // Handle 401 Unauthorized - attempt token refresh
       if (res.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/refresh')) {
         const refreshed = await this.tryRefreshToken();
@@ -64,11 +62,50 @@ export class ApiClient {
           const freshToken = this.getAccessToken();
           headers['Authorization'] = `Bearer ${freshToken}`;
           const retryRes = await fetch(url, { ...options, headers });
-          return await retryRes.json();
+          const retryContentType = retryRes.headers.get('content-type') || '';
+          if (retryContentType.includes('application/json')) {
+            try {
+              return await retryRes.json();
+            } catch {
+              // fallback below
+            }
+          }
+          const retryText = await retryRes.text();
+          return {
+            success: false,
+            statusCode: retryRes.status,
+            data: null as any,
+            message: `Server returned HTTP ${retryRes.status}: ${retryText.replace(/<[^>]*>?/gm, '').trim().slice(0, 150) || 'Non-JSON response'}`,
+          };
         }
       }
 
-      return json;
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        try {
+          const json = await res.json();
+          return json;
+        } catch (jsonErr: any) {
+          return {
+            success: false,
+            statusCode: res.status,
+            data: null as any,
+            message: `Invalid JSON response from server (HTTP ${res.status}): ${jsonErr.message}`,
+          };
+        }
+      }
+
+      // Non-JSON response (e.g. HTML error page or plain text)
+      const text = await res.text();
+      const sanitizedText = text.replace(/<[^>]*>?/gm, '').trim();
+      return {
+        success: false,
+        statusCode: res.status,
+        data: null as any,
+        message: res.status === 404
+          ? 'API endpoint not found (404). Backend service or route handler is being reached.'
+          : (sanitizedText ? sanitizedText.slice(0, 160) : `Server returned HTTP ${res.status}`),
+      };
     } catch (err: any) {
       return {
         success: false,
